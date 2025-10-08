@@ -1,41 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head><meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>sabasabadoo</title>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sabasabadoo</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      body { overflow: hidden; }
+      /* Full-viewport canvas; dvh for mobile address bar correctness with vh fallback */
+      #canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+      }
+    </style>
+  </head>
 
-<body>
-    <canvas id="canvas" width="1920" height="1080"></canvas>
+  <body>
+    <canvas id="canvas"></canvas>
 
     <script src="https://unpkg.com/@rive-app/webgl2"></script>
     <script>
-        const r = new rive.Rive({
-            src: "sameko_saba.riv",
-            canvas: document.getElementById("canvas"),
-            autoplay: true,
-            artboard: "default",
-            stateMachines: "State Machine 1",
-            autoBind: true,
+      const r = new rive.Rive({
+        src: "sameko_saba.riv",
+        canvas: document.getElementById("canvas"),
+        autoplay: true,
+        artboard: "board",
+        stateMachines: "State Machine 1",
+        autoBind: true,
 
-            onLoad: () => {
-                r.resizeDrawingSurfaceToCanvas();
-                const vm = r.viewModelByName("View Model 1");
-                if (!vm) {
-                    console.warn("ViewModel 'cordinate' not found.");
-                    return;
-                }
-                vmInstance = vm.instance();
-                r.bindViewModelInstance(vmInstance);
-                const mouse_x = vmInstance.number("mouse_x");
-                const mouse_y = vmInstance.number("mouse_y");
-                if (!mouse_x || !mouse_y) {
-                    console.warn("ViewModel 'mouse_x' or 'mouse_y' not found.");
-                    return;
-                }
-            }
-        });
+        onLoad: () => {
+          // Match Rive's drawing buffer to the CSS-sized canvas (handles devicePixelRatio)
+          r.resizeDrawingSurfaceToCanvas();
 
-            </script>
+          const vm = r.viewModelByName("View Model 1");
+          if (!vm) {
+            console.warn("ViewModel 'cordinate' not found.");
+            return;
+          }
+          const vmInstance = vm.instance();
+          r.bindViewModelInstance(vmInstance);
+          const mouse_x = vmInstance.number("mouse_x");
+          const mouse_y = vmInstance.number("mouse_y");
+          if (!mouse_x || !mouse_y) {
+            console.warn("ViewModel 'mouse_x' or 'mouse_y' not found.");
+            return;
+          }
+        }
+      });
+
+      // Keep Rive in sync when the viewport changes size (or on monitor DPI changes)
+      window.addEventListener("resize", () => {
+        r?.resizeDrawingSurfaceToCanvas();
+      });
+    </script>
   </body>
 </html>
