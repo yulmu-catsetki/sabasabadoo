@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rive Fullscreen</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+
+    <!-- WebGL2 런타임 -->
+    <script src="https://unpkg.com/@rive-app/webgl2"></script>
+    <script>
+      const canvas = document.getElementById("canvas");
+      let riveApp = null;
+      let vmInstance = null;
+
+      // 초기 캔버스 사이즈 고정 (최초 1회)
+      function initCanvasSize() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+      }
+
+      // 마우스 위치 → global_x / global_y
+      function handlePointerMove(e) {
+        if (!vmInstance) return;
+      }
+      
+      
+      function handleClick(e) {
+        if (!riveApp) return;
+
+      }
+
+      // ---------------- Rive 로드 ----------------
+      const r = new rive.Rive({
+        src: "maid.riv",                      // Rive 파일 경로
+        canvas,
+        autoplay: true,
+        stateMachines: "State Machine 1",
+        fit: rive.Fit.cover,
+        alignment: rive.Alignment.center,
+        autobind: true,
+        onLoad: () => {
+          riveApp = r;
+
+          // 1. ViewModel('cordinate') 가져오기
+          const vm = r.viewModelByName("cordinate");
+          if (!vm) {
+            console.warn("ViewModel 'cordinate' not found.");
+            return;
+          }
+
+          // 2. 인스턴스 생성 + 바인딩
+          vmInstance = vm.instance();
+          r.bindViewModelInstance(vmInstance);
+
+          const width = vmInstance.number("width");
+          const height = vmInstance.number("height");
+          if (!width || !height) {
+            console.warn("ViewModel 'width' or 'height' not found.");
+            return;
+          }
+          width.value = window.innerWidth;
+          height.value = window.innerHeight;
+
+          // 3. 초기 사이즈 세팅 (한 번만)
+          initCanvasSize();
+          r.resizeDrawingSurfaceToCanvas();
+          // 5. 마우스 이벤트 연결
+          window.addEventListener("pointermove", handlePointerMove);
+          window.addEventListener("click", handleClick);
+
+          // 6. 화면 리사이즈 이벤트 연결
+          window.addEventListener("resize", () => {
+            // 캔버스 및 Rive drawing surface 리사이즈
+            initCanvasSize();
+            r.resizeDrawingSurfaceToCanvas();
+            // ViewModel width/height 값 갱신
+            if (vmInstance) {
+              const width = vmInstance.number("width");
+              const height = vmInstance.number("height");
+              if (width && height) {
+                width.value = window.innerWidth;
+                height.value = window.innerHeight;
+              }
+            }
+          });
+        },
+      });
+    </script>
+  </body>
+</html>
